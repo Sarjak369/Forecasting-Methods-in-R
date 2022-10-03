@@ -1,0 +1,133 @@
+---
+title: "sm2732_BF_HW4"
+output: html_document
+date: "2022-10-01"
+---
+
+
+```{r}
+# Business Forecasting HW4
+# Name - Sarjak Atul Maniar
+# Email - sm2732@scarletmail.rutgers.edu
+
+
+library(fpp)
+library(fpp2)
+library(forecast)
+library(TTR)  # because we are doing average, we use this library
+
+data(boston) # picking up the boston dataset
+boston
+
+class(boston) # [1] 1967    1
+
+start(boston) # this tells you that the data series is in a time series format
+#This is the start of the time series
+
+end(boston) # [1] 1969   11
+#This is the end of the time series
+
+frequency(boston) # The cycle of this time series is 12 months in a year
+
+summary(boston)
+
+dim(boston) # [1] 35  2   i.e 35 rows and 2 columns
+
+colnames(boston)  # [1] "nyase" "bse"  
+
+plot(boston) # there's no trend (to check this we can simply plot a point at the starting point and the ending point.. if there's a big difference between them then there is a trend otherwise there's no trend).. we can see that there is seasonality..
+
+nrow(boston) # 35
+ncol(boston) # 2
+
+attributes(boston)   # it's showing that it is a time series with a periodicity of 12.
+
+Acf(boston) 
+
+Acf(boston[,"nyase"])
+Acf(boston[,"bse"])
+
+df.ts_bse <- ts((boston[,"bse"]), frequency = 12, start = c(1967,1))
+df.ts_bse
+plot.ts(df.ts_bse,main = "Timeseries", col = "blue")
+
+df.ts_nyase <- ts((boston[,"bse"]), frequency = 12, start = c(1967,1))
+df.ts_nyase
+plot.ts(df.ts_nyase,main = "Timeseries", col = "blue")
+
+#take Mean of all available history
+mean_forecast <- meanf(df.ts_bse,5)   
+# give the forecast for the next 5 months
+plot(mean_forecast) 
+
+# Naive 
+naive_forecast <- naive(df.ts_bse,5)  
+plot(naive_forecast)  # naive takes the last known value and just extends that
+# there are different versions of naive... random walk,seasonal naive, etc... just explore more about this
+
+# Random Walk
+rwf_forecast <- rwf(df.ts_bse,5)
+rwf_forecast <- rwf(df.ts_bse,5, drift=TRUE)
+
+# Seasonal Naive
+snaive_forecast <- snaive(df.ts_bse,5)
+
+# Moving Averages
+MA5_forecast <- ma(df.ts_bse,order=5)
+MA9_forecast <- ma(df.ts_bse,order=9)
+
+# plot all in a single chart
+plot(mean_forecast)
+lines(naive_forecast$mean,col="red")
+plot(rwf_forecast)
+lines(rwf_forecast$mean,col="green")
+plot(snaive_forecast)
+lines(snaive_forecast$mean,col="black")  
+plot(MA5_forecast)
+lines(MA5_forecast,col="Pink")
+plot(MA9_forecast)
+lines(MA9_forecast,col="Blue")
+
+# what other attributes are there?
+attributes(naive_forecast) 
+# we can also print the values by doing this -> attributes(naive_forecast$fitted)
+
+# Decomposition
+ets_forecast <- ets(df.ts_bse)
+plot(ets_forecast)
+attributes(ets_forecast)
+ets_forecast$mse  # [1] 959.4138
+
+# Decomposition of additive time series...
+df_decompose_bse <- decompose(df.ts_bse, type = "additive")
+plot(df_decompose_bse)
+
+# HoltWinters
+HW_forecast <- HoltWinters(df.ts_bse)
+plot(HW_forecast)
+SSE_Simple <- HoltWinters(df.ts_bse,beta=FALSE,gamma=FALSE)
+attributes(SSE_Simple)
+plot(SSE_Simple)
+SSE_Simple$SSE # [1] 33523.09
+head(SSE_Simple$fitted)
+
+#Forecast
+forecast_ets_1 <- forecast.ets(ets_forecast, h=5)
+plot(forecast_ets_1)
+forecast_ets_2 <- forecast(ets_forecast, h=5)
+plot(forecast_ets_2)
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
